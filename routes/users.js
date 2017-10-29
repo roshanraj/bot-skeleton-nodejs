@@ -1,17 +1,29 @@
 var express = require('express');
 var router = express.Router();
 var UserModel = require('../model/user')
-
+const {Wit, log} = require('node-wit');
 /* GET users listing. */
-router.options('/',function(req, res, next) {
-
-  console.log(id);
-  UserModel.find({}, function(err, users) {
-    if (err) throw err;
-    // object of all the users
-    console.log(users);
-    res.send(users);
+router.get('/',function(req, res) {
+  const client = new Wit({
+    accessToken: "7HI5URXOESVF36QLR65OBPK3SA7OUEZR",
+    logger: new log.Logger(log.DEBUG) // optional
   });
+  // console.log(client.message('set an alarm tomorrow at 7am'));
+  let response = client.message('set an alarm tomorrow at 7am');
+  response.then((data)=>{
+    console.log(data);
+    res.send(data);
+  }).catch((err)=>{
+    console.log(err);
+  });
+  
+  // console.log(id);
+  // UserModel.find({}, function(err, users) {
+  //   if (err) throw err;
+  //   // object of all the users
+  //   console.log(users);
+  //   res.send(users);
+  // });
 });
 
 router.post('/', function(req, res, next){
@@ -32,9 +44,9 @@ router.post('/', function(req, res, next){
   
 })
 
-router.use((req, res, next)=>{
-  console.log(897);
-  res.send({"status":"failed"});
-});
+// router.use((req, res, next)=>{
+//   console.log(897);
+//   res.send({"status":"failed"});
+// });
 
 module.exports = router;

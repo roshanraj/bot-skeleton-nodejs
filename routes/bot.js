@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const {Wit, log} = require('node-wit');
 
 /* GET users listing. */
 router.options('/',function(req, res, next) {
@@ -9,7 +10,10 @@ router.options('/',function(req, res, next) {
 
 router.post('/', function(req, res, next){
   let body = req.body;
-  
+  const client = new Wit({
+    accessToken: process.env.WIT_TOKEN,
+    logger: new log.Logger(log.DEBUG) // optional
+  });
     // Checks this is an event from a page subscription
     if (body.object === 'page') {
   
@@ -19,7 +23,15 @@ router.post('/', function(req, res, next){
         // Gets the message. entry.messaging is an array, but 
         // will only ever contain one message, so we get index 0
         let webhookEvent = entry.messaging[0];
-        console.log(webhookEvent);
+        console.log(JSON.stringify(webhookEvent));
+        console.log("message", webhookEvent.message.text);
+        let response = client.message(webhookEvent.message.text);
+        response.then((data)=>{
+          console.log(data);
+          res.send(data);
+        }).catch((err)=>{
+          console.log(err);
+        });
       });
   
       // Returns a '200 OK' response to all requests

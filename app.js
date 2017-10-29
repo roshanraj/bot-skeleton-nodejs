@@ -10,6 +10,7 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var hacker = require('./routes/hacker');
 var bot = require('./routes/bot');
+
 //Set up default mongoose connection
 var mongoDB = 'mongodb://127.0.0.1/test';
 mongoose.connect(mongoDB);
@@ -42,6 +43,9 @@ app.use('/bot',bot);
 // });
 
 // catch 404 and forward to error handler
+
+
+
 app.use(function(req, res, next) {
   var err = new Error('<---  Not Found  --->');
   err.status = 404;
