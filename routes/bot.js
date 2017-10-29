@@ -1,58 +1,9 @@
 var express = require('express');
 var router = express.Router();
 const { Wit, log } = require('node-wit');
-
-function handleMessage(sender_psid, received_message) {
-  const client = new Wit({
-    accessToken: process.env.WIT_TOKEN,
-    logger: new log.Logger(log.DEBUG) // optional
-  });
-  console.log("message", webhookEvent.message.text);
-  handleMessage()
-  let response = client.message(webhookEvent.message.text);
-  response.then((data) => {
-    console.log(JSON.stringify(data));
-  }).catch((err) => {
-    console.log(err);
-  });
-
-  let response;
-  // Check if the message contains text
-  if (received_message.text) {
-    // Create the payload for a basic text message
-    response = {
-      "text": `You sent the message: "${received_message.text}". Now send me an image!`
-    }
-  }
-
-  // Sends the response message
-  callSendAPI(sender_psid, response);
+function hello(){
+  console.log("hello is good");
 }
-
-function callSendAPI(sender_psid, response) {
-  // Construct the message body
-  let request_body = {
-    "recipient": {
-      "id": sender_psid
-    },
-    "message": response
-  }
-
-  // Send the HTTP request to the Messenger Platform
-  request({
-    "uri": "https://graph.facebook.com/v2.6/me/messages",
-    "qs": { "access_token": PAGE_ACCESS_TOKEN },
-    "method": "POST",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      console.log('message sent!')
-    } else {
-      console.error("Unable to send message:" + err);
-    }
-  });
-}
-
 router.post('/', function (req, res, next) {
   let body = req.body;
 
@@ -71,11 +22,11 @@ router.post('/', function (req, res, next) {
       let sender_psid = webhook_event.sender.id;
       console.log('Sender PSID: ' + sender_psid);
 
-      if (webhook_event.message) {
-        handleMessage(sender_psid, webhook_event.message);
-      } else if (webhook_event.postback) {
-        // handlePostback(sender_psid, webhook_event.postback);
-      }
+      // if (webhook_event.message) {
+      //   handleMessage(sender_psid, webhook_event.message);
+      // } else if (webhook_event.postback) {
+      //   handlePostback(sender_psid, webhook_event.postback);
+      // }
     });
     // Returns a '200 OK' response to all requests
     res.status(200).send('EVENT_RECEIVED');
