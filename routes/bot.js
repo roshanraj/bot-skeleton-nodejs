@@ -32,7 +32,7 @@ router.post('/', function(req, res, next){
 })
 
 // Adds support for GET requests to our webhook
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   
     // Your verify token. Should be a random string.
     let VERIFY_TOKEN = "<YOUR_VERIFY_TOKEN>"
