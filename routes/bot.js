@@ -2,18 +2,60 @@ var express = require('express');
 var router = express.Router();
 const {Wit, log} = require('node-wit');
 
-/* GET users listing. */
-router.options('/',function(req, res, next) {
-  console.log(id);
-  res.send(users);
-});
+function handleMessage(sender_psid, received_message) {
+    const client = new Wit({
+      accessToken: process.env.WIT_TOKEN,
+      logger: new log.Logger(log.DEBUG) // optional
+    });
+    console.log("message", webhookEvent.message.text);
+    handleMessage()
+    let response = client.message(webhookEvent.message.text);
+    response.then((data)=>{
+      console.log(JSON.stringify(data));
+    }).catch((err)=>{
+      console.log(err);
+    });
+
+    let response;
+    // Check if the message contains text
+    if (received_message.text) {    
+      // Create the payload for a basic text message
+      response = {
+        "text": `You sent the message: "${received_message.text}". Now send me an image!`
+      }
+    }  
+    
+    // Sends the response message
+    callSendAPI(sender_psid, response);    
+  }
+
+  function callSendAPI(sender_psid, response) {
+    // Construct the message body
+    let request_body = {
+      "recipient": {
+        "id": sender_psid
+      },
+      "message": response
+    }
+  
+    // Send the HTTP request to the Messenger Platform
+    request({
+      "uri": "https://graph.facebook.com/v2.6/me/messages",
+      "qs": { "access_token": PAGE_ACCESS_TOKEN },
+      "method": "POST",
+      "json": request_body
+    }, (err, res, body) => {
+      if (!err) {
+        console.log('message sent!')
+      } else {
+        console.error("Unable to send message:" + err);
+      }
+    }); 
+  }
 
 router.post('/', function(req, res, next){
   let body = req.body;
-  const client = new Wit({
-    accessToken: process.env.WIT_TOKEN,
-    logger: new log.Logger(log.DEBUG) // optional
-  });
+  
     // Checks this is an event from a page subscription
     if (body.object === 'page') {
   
@@ -24,16 +66,14 @@ router.post('/', function(req, res, next){
         // will only ever contain one message, so we get index 0
         let webhookEvent = entry.messaging[0];
         console.log(JSON.stringify(webhookEvent));
-        console.log("message", webhookEvent.message.text);
-        let response = client.message(webhookEvent.message.text);
-        response.then((data)=>{
-          console.log(data);
-          res.send(data);
-        }).catch((err)=>{
-          console.log(err);
-        });
-      });
+        
   
+        if (webhook_event.message) {
+          handleMessage(sender_psid, webhook_event.message);        
+        } else if (webhook_event.postback) {
+          handlePostback(sender_psid, webhook_event.postback);
+        }
+    });
       // Returns a '200 OK' response to all requests
       res.status(200).send('EVENT_RECEIVED');
     } else {
