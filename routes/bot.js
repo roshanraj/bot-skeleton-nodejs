@@ -1,119 +1,122 @@
 var express = require('express');
 var router = express.Router();
-const {Wit, log} = require('node-wit');
+const { Wit, log } = require('node-wit');
 
 function handleMessage(sender_psid, received_message) {
-    const client = new Wit({
-      accessToken: process.env.WIT_TOKEN,
-      logger: new log.Logger(log.DEBUG) // optional
-    });
-    console.log("message", webhookEvent.message.text);
-    handleMessage()
-    let response = client.message(webhookEvent.message.text);
-    response.then((data)=>{
-      console.log(JSON.stringify(data));
-    }).catch((err)=>{
-      console.log(err);
-    });
+  const client = new Wit({
+    accessToken: process.env.WIT_TOKEN,
+    logger: new log.Logger(log.DEBUG) // optional
+  });
+  console.log("message", webhookEvent.message.text);
+  handleMessage()
+  let response = client.message(webhookEvent.message.text);
+  response.then((data) => {
+    console.log(JSON.stringify(data));
+  }).catch((err) => {
+    console.log(err);
+  });
 
-    let response;
-    // Check if the message contains text
-    if (received_message.text) {    
-      // Create the payload for a basic text message
-      response = {
-        "text": `You sent the message: "${received_message.text}". Now send me an image!`
-      }
-    }  
-    
-    // Sends the response message
-    callSendAPI(sender_psid, response);    
-  }
-
-  function callSendAPI(sender_psid, response) {
-    // Construct the message body
-    let request_body = {
-      "recipient": {
-        "id": sender_psid
-      },
-      "message": response
+  let response;
+  // Check if the message contains text
+  if (received_message.text) {
+    // Create the payload for a basic text message
+    response = {
+      "text": `You sent the message: "${received_message.text}". Now send me an image!`
     }
-  
-    // Send the HTTP request to the Messenger Platform
-    request({
-      "uri": "https://graph.facebook.com/v2.6/me/messages",
-      "qs": { "access_token": PAGE_ACCESS_TOKEN },
-      "method": "POST",
-      "json": request_body
-    }, (err, res, body) => {
-      if (!err) {
-        console.log('message sent!')
-      } else {
-        console.error("Unable to send message:" + err);
-      }
-    }); 
   }
 
-router.post('/', function(req, res, next){
-  let body = req.body;
-  
-    // Checks this is an event from a page subscription
-    if (body.object === 'page') {
-  
-      // Iterates over each entry - there may be multiple if batched
-      body.entry.forEach(function(entry) {
-  
-        // Gets the message. entry.messaging is an array, but 
-        // will only ever contain one message, so we get index 0
-        let webhookEvent = entry.messaging[0];
-        console.log(JSON.stringify(webhookEvent));
-        
-  
-        if (webhook_event.message) {
-          handleMessage(sender_psid, webhook_event.message);        
-        } else if (webhook_event.postback) {
-          handlePostback(sender_psid, webhook_event.postback);
-        }
-    });
-      // Returns a '200 OK' response to all requests
-      res.status(200).send('EVENT_RECEIVED');
+  // Sends the response message
+  callSendAPI(sender_psid, response);
+}
+
+function callSendAPI(sender_psid, response) {
+  // Construct the message body
+  let request_body = {
+    "recipient": {
+      "id": sender_psid
+    },
+    "message": response
+  }
+
+  // Send the HTTP request to the Messenger Platform
+  request({
+    "uri": "https://graph.facebook.com/v2.6/me/messages",
+    "qs": { "access_token": PAGE_ACCESS_TOKEN },
+    "method": "POST",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      console.log('message sent!')
     } else {
-      // Returns a '404 Not Found' if event is not from a page subscription
-      res.sendStatus(404);
+      console.error("Unable to send message:" + err);
     }
-  
+  });
+}
+
+router.post('/', function (req, res, next) {
+  let body = req.body;
+
+  // Checks this is an event from a page subscription
+  if (body.object === 'page') {
+
+    // Iterates over each entry - there may be multiple if batched
+    body.entry.forEach(function (entry) {
+
+      // Gets the message. entry.messaging is an array, but 
+      // will only ever contain one message, so we get index 0
+      let webhookEvent = entry.messaging[0];
+      console.log(JSON.stringify(webhookEvent));
+
+      // Get the sender PSID
+      let sender_psid = webhook_event.sender.id;
+      console.log('Sender PSID: ' + sender_psid);
+
+      if (webhook_event.message) {
+        handleMessage(sender_psid, webhook_event.message);
+      } else if (webhook_event.postback) {
+        handlePostback(sender_psid, webhook_event.postback);
+      }
+    });
+    // Returns a '200 OK' response to all requests
+    res.status(200).send('EVENT_RECEIVED');
+  } else {
+    // Returns a '404 Not Found' if event is not from a page subscription
+    res.sendStatus(404);
+  }
+
 })
 
 // Adds support for GET requests to our webhook
 router.get('/', (req, res) => {
-  
-    // Your verify token. Should be a random string.
-    let VERIFY_TOKEN = process.env.MESS_TOKEN;
-      
-    // Parse the query params
-    let mode = req.query['hub.mode'];
-    let token = req.query['hub.verify_token'];
-    let challenge = req.query['hub.challenge'];
-      
-    // Checks if a token and mode is in the query string of the request
-    if (mode && token) {
-    
-      // Checks the mode and token sent is correct
-      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-        
-        // Responds with the challenge token from the request
-        console.log('WEBHOOK_VERIFIED');
-        res.status(200).send(challenge);
-      
-      } else {
-        // Responds with '403 Forbidden' if verify tokens do not match
-        res.sendStatus(403);      
-      }
-    }
-  });
 
-router.use((req, res, next)=>{
+  // Your verify token. Should be a random string.
+  let VERIFY_TOKEN = process.env.MESS_TOKEN;
+
+  // Parse the query params
+  let mode = req.query['hub.mode'];
+  let token = req.query['hub.verify_token'];
+  let challenge = req.query['hub.challenge'];
+
+  // Checks if a token and mode is in the query string of the request
+  if (mode && token) {
+
+    // Checks the mode and token sent is correct
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+
+      // Responds with the challenge token from the request
+      console.log('WEBHOOK_VERIFIED');
+      res.status(200).send(challenge);
+
+    } else {
+      // Responds with '403 Forbidden' if verify tokens do not match
+      res.sendStatus(403);
+    }
+  }
+});
+
+router.use((req, res, next) => {
   console.log(897);
-  res.send({"status":"failed"});
+  res.send({ "status": "failed" });
 });
 
 module.exports = router;
