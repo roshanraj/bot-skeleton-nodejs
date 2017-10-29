@@ -9,7 +9,7 @@ var mongoose = require('mongoose');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var hacker = require('./routes/hacker');
-
+var bot = require('./routes/bot');
 //Set up default mongoose connection
 var mongoDB = 'mongodb://127.0.0.1/test';
 mongoose.connect(mongoDB);
@@ -35,6 +35,7 @@ app.use('/users', users);
 app.use('/users/:id',users);
 // user hacker new api to serve top 50 news
 app.use('/hacker', hacker);
+app.use('/bot',bot);
 // once angularjs application ready serve from public folder
 // app.get('*', function(req, res) {
 //         res.sendfile('./public/index.html'); // load the spa
