@@ -16,6 +16,7 @@ router.post('/', function (req, res, next) {
       // Gets the message. entry.messaging is an array, but 
       // will only ever contain one message, so we get index 0
       let webhookEvent = entry.messaging[0];
+      console.log("message from user");
       console.log(JSON.stringify(webhookEvent));
 
       // Get the sender PSID
